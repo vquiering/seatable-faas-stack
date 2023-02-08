@@ -28,7 +28,10 @@ push:
 
 release: package repo push
 
-cr-release: version
+cr-package: version
+	cr package ./$(NAME)
+
+cr-release: cr-package
 	cr upload --git-repo $(NAME) --owner $(OWNER) --token $(GITHUB_TOKEN)
 
 ## get this help page
