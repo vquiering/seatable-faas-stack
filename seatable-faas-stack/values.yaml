@@ -1,0 +1,180 @@
+# Default values for seatable-faas.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+global:
+  fullnameOverride: ""
+  globalPodAnnotations: {}
+  database:
+    # required
+    # password for the seatable-faas-scheduler database,
+    # if database pod is not used, this is the database used in the scheduler
+    # to connect to your custom database
+    password: ""
+
+seatableFaasScheduler:
+
+  # how many scheduler are deployed behind the ingress (not tested in a production environment)
+  replicaCount: 1
+
+  config:
+    # required
+    # URL of your seatable server
+    serviceUrl: ""
+    # base64 encoded passphrase string
+    # leave serviceToken emtpy to let it autocreate
+    # get the created token from /opt/seatable-faas-scheduler/conf/seatable_faas_scheduler_settings.py afterwards
+    serviceToken: ""
+    # leave runnerUrl emtpy to use deployed pod
+    runnerUrl: ""
+    # leave dbHost emtpy to use deployed pod
+    dbHost: ""
+    # leave timezone empty for UTC
+    timezone: ""
+
+  image:
+    # https://github.com/vquiering/seatable-faas-scheduler
+    repository: vqui/seatable-faas-scheduler
+    pullPolicy: IfNotPresent
+    tag: "2.2.2"
+
+  imagePullSecrets: []
+  nameOverride: "seatable-faas-scheduler"
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  persistence:
+    # enable persistence, needed if serviceToken is ommitted
+    enabled: true
+    storageClass: ""
+    size: "10Gi"
+
+seatableFaasSchedulerDb:
+
+  # disable if you use a different db
+  enabled: true
+
+  config:
+    # use mariadb auto update feature
+    mariadbAutoUpdate: true
+
+  image:
+    repository: mariadb
+    pullPolicy: IfNotPresent
+    tag: "10.10"
+
+  imagePullSecrets: []
+  nameOverride: "seatable-faas-scheduler-db"
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  persistence:
+    # enable persistence if needed
+    enabled: true
+    storageClass: ""
+    size: "10Gi"
+
+seatablePythonRunner:
+
+  # disable if you use a different seatable-python-runner
+  enabled: true
+
+  replicaCount: 1
+
+  config:
+    # leave schedulerUrl empty for deployed pod
+    schedulerUrl: ""
+    # if you use a custom image, set it it here
+    runnerImage: "seatable/python-runner:latest"
+
+  image:
+    # https://github.com/vquiering/seatable-python-runner
+    repository: vqui/seatable-python-runner
+    pullPolicy: IfNotPresent
+    tag: "2.0.5"
+
+  dind:
+    # leave this enabled if you are running in k8s
+    enabled: true
+    image:
+      # set a different service image if needed
+      repository: docker
+      pullPolicy: IfNotPresent
+      tag: "23.0.0-dind"
+    imagePullSecrets: []
+    nameOverride: ""
+    resources: {}
+
+  imagePullSecrets: []
+  nameOverride: "seatable-python-runner"
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  domain: seatable-faas-scheduler.example.com
+  tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local

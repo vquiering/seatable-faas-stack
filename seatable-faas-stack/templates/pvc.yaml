@@ -1,0 +1,30 @@
+{{ if .Values.seatableFaasScheduler.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.seatableFaasScheduler.nameOverride }}-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.seatableFaasScheduler.persistence.size }}
+  storageClassName: {{ .Values.seatableFaasScheduler.persistence.storageClass }}
+{{ end }}
+{{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.seatableFaasSchedulerDb.persistence.size }}
+  storageClassName: {{ .Values.seatableFaasSchedulerDb.persistence.storageClass }}
+{{ end }}

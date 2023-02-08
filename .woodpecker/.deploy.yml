@@ -1,0 +1,28 @@
+---
+pipeline:
+  lint:
+    image: alpine/helm:3.10.2
+    commands:
+      - apk add make
+      - make lint
+
+  deploy:
+    image: alpine/helm:3.10.2
+    secrets:
+      - REPO_USERNAME
+      - REPO_PASSWORD
+    commands:
+      - apk add make
+      - helm plugin install https://github.com/chartmuseum/helm-push
+      - make release
+
+when:
+  branch:
+    include:
+      - master
+    exclude:
+      - renovate/*
+  event:
+    - push
+  path:
+    - "seatable-faas-stack/*"

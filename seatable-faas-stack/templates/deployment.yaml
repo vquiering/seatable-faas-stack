@@ -1,0 +1,277 @@
+{{- $serviceURL := .Values.seatableFaasScheduler.config.serviceUrl | required "seatableFaasScheduler.config.serviceUrl is required." -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.seatableFaasScheduler.nameOverride }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "seatable-faas.labels" . | nindent 4 }}
+    component: scheduler
+spec:
+  replicas: {{ .Values.seatableFaasScheduler.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "seatable-faas.selectorLabels" . | nindent 6 }}
+      component: scheduler
+  template:
+    metadata:
+      {{- with .Values.seatableFaasScheduler.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "seatable-faas.selectorLabels" . | nindent 8 }}
+        component: scheduler
+    spec:
+      {{- with .Values.seatableFaasScheduler.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.seatableFaasScheduler.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.seatableFaasScheduler.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.seatableFaasScheduler.securityContext | nindent 12 }}
+          image: "{{ .Values.seatableFaasScheduler.image.repository }}:{{ .Values.seatableFaasScheduler.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.seatableFaasScheduler.image.pullPolicy | quote }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: DB_HOST
+              value: {{ .Values.seatableFaasScheduler.config.dbHost | default .Values.seatableFaasSchedulerDb.nameOverride | quote }}
+            - name: RUNNER_URL
+              {{ if .Values.seatableFaasScheduler.config.runnerUrl }}
+              value: {{ .Values.seatableFaasScheduler.config.runnerUrl | quote }}
+              {{ else }}
+              value: "{{ printf "http://%s" .Values.seatablePythonRunner.nameOverride }}:8080"
+              {{ end }}
+            - name: DTABLE_WEB_SERVICE_URL
+              value: {{ .Values.seatableFaasScheduler.config.serviceUrl | quote }}
+            - name: DB_ROOT_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: {{ .Values.seatableFaasSchedulerDb.nameOverride }}
+            {{ if .Values.seatableFaasScheduler.config.serviceToken }}
+            - name: SEATABLE_FAAS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: {{ .Values.seatableFaasScheduler.nameOverride }}-token
+            {{ end }}
+            - name: TIME_ZONE
+              value: {{ .Values.seatableFaasScheduler.config.timezone | default "UTC" | quote }}
+          resources:
+            {{- toYaml .Values.seatableFaasScheduler.resources | nindent 12 }}
+          {{ if .Values.seatableFaasScheduler.persistence.enabled }}
+          volumeMounts:
+            - name: {{ .Values.seatableFaasScheduler.nameOverride }}-data
+              mountPath: /shared
+          {{ end }}
+      {{ if .Values.seatableFaasScheduler.persistence.enabled }}  
+      volumes:
+        - name: {{ .Values.seatableFaasScheduler.nameOverride }}-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.seatableFaasScheduler.nameOverride }}-data
+      {{ end }}
+      {{- with .Values.seatableFaasScheduler.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seatableFaasScheduler.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seatableFaasScheduler.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- if .Values.seatableFaasSchedulerDb.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "seatable-faas.labels" . | nindent 4 }}
+    component: database
+spec:
+  replicas: {{ .Values.seatableFaasSchedulerDb.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "seatable-faas.selectorLabels" . | nindent 6 }}
+      component: database
+  template:
+    metadata:
+      {{- with .Values.seatableFaasSchedulerDb.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "seatable-faas.selectorLabels" . | nindent 8 }}
+        component: database
+    spec:
+      {{- with .Values.seatableFaasSchedulerDb.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.seatableFaasSchedulerDb.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.seatableFaasSchedulerDb.securityContext | nindent 12 }}
+          image: "{{ .Values.seatableFaasSchedulerDb.image.repository }}:{{ .Values.seatableFaasSchedulerDb.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.seatableFaasSchedulerDb.image.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.seatableFaasSchedulerDb.resources | nindent 12 }}
+          {{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}
+          volumeMounts:
+            - name: seatable-faas-scheduler-db
+              mountPath: /var/lib/mysql
+          env:
+            - name: "MYSQL_ROOT_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: {{ .Values.seatableFaasSchedulerDb.nameOverride }}
+            - name: "MYSQL_LOG_CONSOLE"
+              value: "true"
+            {{ if .Values.seatableFaasSchedulerDb.config.mariadbAutoUpdate }}
+            - name: "MARIADB_AUTO_UPGRADE"  
+              value: "1"
+            {{ end }}
+          volumeMounts:
+            - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
+              mountPath: /shared
+          {{ end }}
+      {{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}  
+      volumes:
+        - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
+          persistentVolumeClaim:
+            claimName: {{ .Values.seatableFaasScheduler.nameOverride }}-data
+      {{ end }}
+      {{- with .Values.seatableFaasSchedulerDb.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seatableFaasSchedulerDb.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seatableFaasSchedulerDb.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- if .Values.seatablePythonRunner.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.seatablePythonRunner.nameOverride }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "seatable-faas.labels" . | nindent 4 }}
+    component: runner
+spec:
+  replicas: {{ .Values.seatablePythonRunner.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "seatable-faas.selectorLabels" . | nindent 6 }}
+      component: runner
+  template:
+    metadata:
+      {{- with .Values.seatablePythonRunner.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "seatable-faas.selectorLabels" . | nindent 8 }}
+        component: runner
+    spec:
+      {{- with .Values.seatablePythonRunner.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.seatablePythonRunner.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.seatablePythonRunner.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.seatablePythonRunner.securityContext | nindent 12 }}
+          image: "{{ .Values.seatablePythonRunner.image.repository }}:{{ .Values.seatablePythonRunner.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.seatablePythonRunner.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: FAAS_SCHEDULER_URL
+              {{ if .Values.seatablePythonRunner.config.schedulerUrl }}
+              value: {{ .Values.seatablePythonRunner.config.schedulerUrl }}
+              {{ else }}
+              value: {{ printf "http://%s" .Values.seatableFaasScheduler.nameOverride }}
+              {{ end }}
+            - name: SEATABLE_RUNNER_IMAGE
+              value: {{ .Values.seatablePythonRunner.config.runnerImage | quote }}
+            {{ if .Values.seatablePythonRunner.dind.enabled }}
+            - name: DOCKER_HOST
+              value: "localhost:2375"
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+            {{ end }}
+          readinessProbe:
+            httpGet:
+              path: /_/health
+              port: 8080
+            successThreshold: 1
+            periodSeconds: 15
+            initialDelaySeconds: 60
+          resources:
+            {{- toYaml .Values.seatablePythonRunner.resources | nindent 12 }}
+        {{- if .Values.seatablePythonRunner.dind.enabled }}
+          volumeMounts:
+            - mountPath: /opt/seatable-python-runner/shared
+              name: shared-volume
+        - name: {{ .Values.seatablePythonRunner.nameOverride }}-dind
+          securityContext:
+            privileged: true
+          image: "{{ .Values.seatablePythonRunner.dind.image.repository }}:{{ .Values.seatablePythonRunner.dind.image.tag | default "dind" }}"
+          resources:
+            {{- toYaml .Values.seatablePythonRunner.dind.resources | nindent 12 }}
+          env:
+            - name: DOCKER_DRIVER
+              value: "overlay2"
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          volumeMounts:
+            - mountPath: /opt/seatable-python-runner/shared
+              name: shared-volume
+      volumes:
+        - name: shared-volume
+          emptyDir:
+            sizeLimit: 100Mi
+        {{- end }}
+      {{- with .Values.seatablePythonRunner.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seatablePythonRunner.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.seatablePythonRunner.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

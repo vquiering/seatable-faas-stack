@@ -1,0 +1,9 @@
+apiVersion: v2
+name: seatable-faas-stack
+icon: https://manual.seatable.io/media/SeaTable256-256.png
+description: "The FAAS Scheduler is a component of SeaTable’s execution environment for Python scripts.
+The FAAS Scheduler handles requests, schedules jobs, saves and counts the results of script runs.
+Please see the SeaTable Manual for installation and upgrade instructions."
+type: application
+version: "<VERSION>"
+appVersion: "2.2.2"
