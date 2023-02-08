@@ -28,6 +28,9 @@ push:
 
 release: package repo push
 
+cr-release:
+	cr upload --git-repo $(NAME) --owner $(OWNER) --token $(GITHUB_TOKEN)
+
 ## get this help page
 .PHONY: help
 help:
