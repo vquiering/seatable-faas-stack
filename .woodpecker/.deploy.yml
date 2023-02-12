@@ -7,13 +7,14 @@ pipeline:
       - make lint
 
   deploy:
-    image: quay.io/helmpack/chart-releaser:v1.5.0
+    image: alpine/helm:3.10.2
     secrets:
-      - GITHUB_TOKEN
+      - REPO_USERNAME
+      - REPO_PASSWORD
     commands:
       - apk add make
-      - make cr-release
-      - make index
+      - helm plugin install https://github.com/chartmuseum/helm-push
+      - make release
 
 when:
   branch:

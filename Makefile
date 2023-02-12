@@ -28,15 +28,6 @@ push:
 
 release: package repo push
 
-cr-package: version
-	cr package ./$(NAME)
-
-cr-release: cr-package
-	cr upload --git-repo helm-charts --owner $(OWNER) --token $(GITHUB_TOKEN)
-
-index:
-	cr index --git-repo helm-charts --owner $(OWNER) --pages-branch master --token $(GITHUB_TOKEN) --push
-
 ## get this help page
 .PHONY: help
 help:
