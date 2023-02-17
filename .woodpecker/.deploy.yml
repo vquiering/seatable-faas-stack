@@ -1,13 +1,13 @@
 ---
 pipeline:
   lint:
-    image: alpine/helm:3.10.2
+    image: alpine/helm:3.11.1
     commands:
       - apk add make
       - make lint
 
   deploy:
-    image: alpine/helm:3.10.2
+    image: alpine/helm:3.11.1
     secrets:
       - REPO_USERNAME
       - REPO_PASSWORD
