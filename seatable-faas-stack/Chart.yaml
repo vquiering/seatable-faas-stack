@@ -5,5 +5,5 @@ description: "The FAAS Scheduler is a component of SeaTable’s execution enviro
 The FAAS Scheduler handles requests, schedules jobs, saves and counts the results of script runs.
 Please see the SeaTable Manual for installation and upgrade instructions."
 type: application
-version: "<VERSION>"
+version: "1.0.1"
 appVersion: "2.2.2"
