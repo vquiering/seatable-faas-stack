@@ -137,7 +137,7 @@ seatablePythonRunner:
       # -- set a different service image if needed
       repository: docker
       pullPolicy: IfNotPresent
-      tag: "23.0.2-dind"
+      tag: "23.0.5-dind"
     imagePullSecrets: []
     nameOverride: ""
     resources: {}
