@@ -158,7 +158,7 @@ spec:
       volumes:
         - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
           persistentVolumeClaim:
-            claimName: {{ .Values.seatableFaasScheduler.nameOverride }}-data
+            claimName: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
       {{ end }}
       {{- with .Values.seatableFaasSchedulerDb.nodeSelector }}
       nodeSelector:
