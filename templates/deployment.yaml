@@ -136,7 +136,7 @@ spec:
             {{- toYaml .Values.seatableFaasSchedulerDb.resources | nindent 12 }}
           {{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}
           volumeMounts:
-            - name: seatable-faas-scheduler-db
+            - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
               mountPath: /var/lib/mysql
           env:
             - name: "MYSQL_ROOT_PASSWORD"
