@@ -134,10 +134,6 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.seatableFaasSchedulerDb.resources | nindent 12 }}
-          {{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}
-          volumeMounts:
-            - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
-              mountPath: /var/lib/mysql
           env:
             - name: "MYSQL_ROOT_PASSWORD"
               valueFrom:
@@ -150,9 +146,10 @@ spec:
             - name: "MARIADB_AUTO_UPGRADE"  
               value: "1"
             {{ end }}
+          {{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}
           volumeMounts:
             - name: {{ .Values.seatableFaasSchedulerDb.nameOverride }}-db
-              mountPath: /shared
+              mountPath: /var/lib/mysql
           {{ end }}
       {{ if .Values.seatableFaasSchedulerDb.persistence.enabled }}  
       volumes:
