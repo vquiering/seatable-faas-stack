@@ -1,6 +1,6 @@
 # seatable-faas-stack
 
-![Version: 1.0.4](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.2.2](https://img.shields.io/badge/AppVersion-2.2.2-informational?style=flat-square)
+![Version: 1.0.4](https://img.shields.io/badge/Version-1.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.2.2](https://img.shields.io/badge/AppVersion-2.2.2-informational?style=flat-square)
 
 The FAAS Scheduler is a component of SeaTable’s execution environment for Python scripts. The FAAS Scheduler handles requests, schedules jobs, saves and counts the results of script runs. Please see the SeaTable Manual for installation and upgrade instructions.
 
