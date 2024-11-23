@@ -79,7 +79,7 @@ seatableFaasSchedulerDb:
   image:
     repository: mariadb
     pullPolicy: IfNotPresent
-    tag: "11.3"
+    tag: "11.6"
 
   imagePullSecrets: []
   nameOverride: "seatable-faas-scheduler-db"
